@@ -27,6 +27,8 @@ def batch_loader(
     indices = list(range(len(X)))
 
     # TODO (task 2e) implement dataset shuffling here.
+    if shuffle:
+        np.random.shuffle(indices)
 
     for i in range(num_batches):
         # select a set of indices for each batch of samples
@@ -71,6 +73,8 @@ def load_binary_dataset(class1: int, class2: int, train_size: int = 18000, test_
         X_val: images of shape [test_size, 784] in the range (0, 255)
         Y_val: labels of shape [test_size]
     """
+    train_size = 20000
+    val_size = 10000
     X_train, Y_train, X_val, Y_val = mnist.load()
 
 
@@ -117,6 +121,8 @@ def load_full_mnist(train_size: int = 18000, test_size: int = 2000, sample_stoch
         X_val: images of shape [test_size, 784] in the range (0, 255)
         Y_val: labels of shape [test_size]
     """
+    train_size = 20000
+    test_size = 10000
     X_train, Y_train, X_val, Y_val = mnist.load()
 
     if sample_stochastic:
