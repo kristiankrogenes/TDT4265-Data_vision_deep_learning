@@ -29,5 +29,5 @@ if __name__ == "__main__":
     Y_train = Y_train[:100]
     for layer_idx, w in enumerate(model.ws):
         model.ws[layer_idx] = np.random.uniform(-1, 1, size=w.shape)
-
+        
     gradient_approximation_test(model, X_train, Y_train)

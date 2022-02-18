@@ -1,7 +1,7 @@
 import utils
 import matplotlib.pyplot as plt
-from task2a import pre_process_images, one_hot_encode, SoftmaxModel
-from task2 import SoftmaxTrainer
+from task2a import cross_entropy_loss, pre_process_images, one_hot_encode, SoftmaxModel
+from task2 import SoftmaxTrainer, calculate_accuracy
 
 
 if __name__ == "__main__":
@@ -24,6 +24,7 @@ if __name__ == "__main__":
     Y_train = one_hot_encode(Y_train, 10)
     Y_val = one_hot_encode(Y_val, 10)
 
+    # // INITIAL MODEL // ===========================
     model = SoftmaxModel(
         neurons_per_layer,
         use_improved_sigmoid,
@@ -35,34 +36,101 @@ if __name__ == "__main__":
     )
     train_history, val_history = trainer.train(num_epochs)
 
-    # Example created for comparing with and without shuffling.
-    # For comparison, show all loss/accuracy curves in the same plot
-    # YOU CAN DELETE EVERYTHING BELOW!
-    shuffle_data = False
-    model_no_shuffle = SoftmaxModel(
+    print("Final Train Cross Entropy Loss - Initial:", cross_entropy_loss(Y_train, model.forward(X_train)))
+    print("Final Validation Cross Entropy Loss - Initial:", cross_entropy_loss(Y_val, model.forward(X_val)))
+    print("Train accuracy - Initial:", calculate_accuracy(X_train, Y_train, model))
+    print("Validation accuracy - Initial:", calculate_accuracy(X_val, Y_val, model))
+
+    # // IMPROVED WEIGHTS MODEL // ========================
+    use_improved_weight_init = True
+    use_improved_sigmoid = False
+    use_momentum = False
+
+    model_iw = SoftmaxModel(
         neurons_per_layer,
         use_improved_sigmoid,
         use_improved_weight_init)
-    trainer_shuffle = SoftmaxTrainer(
+    trainer_iw = SoftmaxTrainer(
         momentum_gamma, use_momentum,
-        model_no_shuffle, learning_rate, batch_size, shuffle_data,
+        model_iw, learning_rate, batch_size, shuffle_data,
         X_train, Y_train, X_val, Y_val,
     )
-    train_history_no_shuffle, val_history_no_shuffle = trainer_shuffle.train(
-        num_epochs)
-    shuffle_data = True
+    train_history_iw, val_history_iw = trainer_iw.train(num_epochs)
+
+    print("\nImproved weights:")
+    print("Final Train Cross Entropy Loss - Improved weights:", cross_entropy_loss(Y_train, model_iw.forward(X_train)))
+    print("Final Validation Cross Entropy Loss - Improved weights:", cross_entropy_loss(Y_val, model_iw.forward(X_val)))
+    print("Train accuracy - Improved weights:", calculate_accuracy(X_train, Y_train, model_iw))
+    print("Validation accuracy - Improved weights:", calculate_accuracy(X_val, Y_val, model_iw))
+
+    # // IMPROVED WEIGHTS & SIGMOID MODEL // =======================
+    use_improved_weight_init = True
+    use_improved_sigmoid = True
+    use_momentum = False
+
+    model_iws = SoftmaxModel(
+        neurons_per_layer,
+        use_improved_sigmoid,
+        use_improved_weight_init)
+    trainer_iws = SoftmaxTrainer(
+        momentum_gamma, use_momentum,
+        model_iws, learning_rate, batch_size, shuffle_data,
+        X_train, Y_train, X_val, Y_val,
+    )
+    train_history_iws, val_history_iws = trainer_iws.train(num_epochs)
+
+    print("\nImproved weights, sigmoid:")
+    print("Final Train Cross Entropy Loss - Improved weights, sigmoid:", cross_entropy_loss(Y_train, model_iws.forward(X_train)))
+    print("Final Validation Cross Entropy Loss - Improved weights, sigmoid:", cross_entropy_loss(Y_val, model_iws.forward(X_val)))
+    print("Train accuracy - Improved weights, sigmoid:", calculate_accuracy(X_train, Y_train, model_iws))
+    print("Validation accuracy - Improved weights, sigmoid:", calculate_accuracy(X_val, Y_val, model_iws))
+
+    # // IMPROVED WEIGHTS & SIGMOID & MOMENTUM MODEL // ===================
+    use_improved_weight_init = True
+    use_improved_sigmoid = True
+    use_momentum = True
+    learning_rate = .02
+
+    model_iwsm = SoftmaxModel(
+        neurons_per_layer,
+        use_improved_sigmoid,
+        use_improved_weight_init)
+    trainer_iwsm = SoftmaxTrainer(
+        momentum_gamma, use_momentum,
+        model_iwsm, learning_rate, batch_size, shuffle_data,
+        X_train, Y_train, X_val, Y_val,
+    )
+    train_history_iwsm, val_history_iwsm = trainer_iwsm.train(num_epochs)
+
+    print("\nImproved weights, sigmoid, momentum:")
+    print("Final Train Cross Entropy Loss - Improved weights, sigmoid, momentum:", cross_entropy_loss(Y_train, model_iwsm.forward(X_train)))
+    print("Final Validation Cross Entropy Loss - Improved weights, sigmoid, momentum:", cross_entropy_loss(Y_val, model_iwsm.forward(X_val)))
+    print("Train accuracy - Improved weights, sigmoid, momentum:", calculate_accuracy(X_train, Y_train, model_iwsm))
+    print("Validation accuracy - Improved weights, sigmoid, momentum:", calculate_accuracy(X_val, Y_val, model_iwsm))
+
+    # // PLOT // ===================================================
+
+    plt.figure(figsize=(20, 12))
 
     plt.subplot(1, 2, 1)
-    utils.plot_loss(train_history["loss"],
-                    "Task 2 Model", npoints_to_average=10)
-    utils.plot_loss(
-        train_history_no_shuffle["loss"], "Task 2 Model - No dataset shuffling", npoints_to_average=10)
-    plt.ylim([0, .4])
-    plt.subplot(1, 2, 2)
-    plt.ylim([0.85, .95])
-    utils.plot_loss(val_history["accuracy"], "Task 2 Model")
-    utils.plot_loss(
-        val_history_no_shuffle["accuracy"], "Task 2 Model - No Dataset Shuffling")
-    plt.ylabel("Validation Accuracy")
+    plt.ylim([0, .6])
+    utils.plot_loss(train_history["loss"], "Train loss - Initial", npoints_to_average=10)
+    utils.plot_loss(train_history_iw["loss"], "Train loss - Improved weights", npoints_to_average=10)
+    utils.plot_loss(train_history_iws["loss"], "Train loss - Improved weights, sigmoid", npoints_to_average=10)
+    utils.plot_loss(train_history_iwsm["loss"], "Train loss - Improved weights, sigmoid, momentum", npoints_to_average=10)
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Training Loss")
     plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.ylim([0.85, .98])
+    utils.plot_loss(val_history["accuracy"], "Validation accuracy - Initial")
+    utils.plot_loss(val_history_iw["accuracy"], "Validation accuracy - Improved weights")
+    utils.plot_loss(val_history_iws["accuracy"], "Validation accuracy - Improved weights, sigmoid")
+    utils.plot_loss(val_history_iwsm["accuracy"], "Validation accuracy - Improved weights, sigmoid, momentum")
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("ValidationAccuracy")
+    plt.legend()
+
+    plt.savefig("task3_improved.png")
     plt.show()
