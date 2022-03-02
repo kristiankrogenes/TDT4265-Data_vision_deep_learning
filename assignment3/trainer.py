@@ -20,10 +20,12 @@ def compute_loss_and_accuracy(
     Returns:
         [average_loss, accuracy]: both scalar.
     """
-    average_loss = 0
-    accuracy = 0
     # TODO: Implement this function (Task  2a)
     with torch.no_grad():
+        correct_predictions = 0
+        num_predictions = 0
+        total_loss = 0
+        num_batches = 0
         for (X_batch, Y_batch) in dataloader:
             # Transfer images/labels to GPU VRAM, if possible
             X_batch = utils.to_cuda(X_batch)
@@ -32,9 +34,16 @@ def compute_loss_and_accuracy(
             output_probs = model(X_batch)
 
             # Compute Loss and Accuracy
+            _, predictions = output_probs.max(1)
+            correct_predictions += (predictions == Y_batch).sum().item()
+            num_predictions += predictions.size(0)
+            total_loss += loss_criterion(output_probs, Y_batch).item()
+            num_batches += 1
+
+    average_loss = total_loss / num_batches
+    accuracy =correct_predictions / num_predictions
 
     return average_loss, accuracy
-
 
 class Trainer:
 
@@ -83,6 +92,11 @@ class Trainer:
             loss=collections.OrderedDict(),
             accuracy=collections.OrderedDict()
         )
+        self.test_history = dict(
+            loss=collections.OrderedDict(),
+            accuracy=collections.OrderedDict()
+        )
+        
         self.checkpoint_dir = pathlib.Path("checkpoints")
 
     def validation_step(self):
@@ -91,12 +105,27 @@ class Trainer:
             Train, validation and test.
         """
         self.model.eval()
+
+        train_loss, train_acc = compute_loss_and_accuracy(
+            self.dataloader_train, self.model, self.loss_criterion
+        )
+        self.train_history["loss"][self.global_step] = train_loss
+        self.train_history["accuracy"][self.global_step] = train_acc
+
         validation_loss, validation_acc = compute_loss_and_accuracy(
             self.dataloader_val, self.model, self.loss_criterion
         )
         self.validation_history["loss"][self.global_step] = validation_loss
         self.validation_history["accuracy"][self.global_step] = validation_acc
+
+        test_loss, test_acc = compute_loss_and_accuracy(
+            self.dataloader_test, self.model, self.loss_criterion
+        )
+        self.test_history["loss"][self.global_step] = test_loss
+        self.test_history["accuracy"][self.global_step] = test_acc
+
         used_time = time.time() - self.start_time
+
         print(
             f"Epoch: {self.epoch:>1}",
             f"Batches per seconds: {self.global_step / used_time:.2f}",
@@ -104,6 +133,7 @@ class Trainer:
             f"Validation Loss: {validation_loss:.2f}",
             f"Validation Accuracy: {validation_acc:.3f}",
             sep=", ")
+            
         self.model.train()
 
     def should_early_stop(self):
