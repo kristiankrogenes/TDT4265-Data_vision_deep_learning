@@ -1,7 +1,6 @@
 import numpy as np
 
-for i in range(10):
-    print((i+1) // 5)
 
+print([1, 2][1:])
 
 

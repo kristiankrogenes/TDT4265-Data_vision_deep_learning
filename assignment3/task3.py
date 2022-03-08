@@ -26,11 +26,12 @@ class Model1(nn.Module):
             nn.Conv2d(
                 in_channels=image_channels,
                 out_channels=32,
-                kernel_size=5,
+                kernel_size=3,
                 stride=1,
-                padding=2
+                padding=1
             ),
             nn.Sigmoid(),
+            nn.BatchNorm2d(32),
             nn.MaxPool2d(
                 kernel_size=2,
                 stride=2
@@ -39,11 +40,12 @@ class Model1(nn.Module):
             nn.Conv2d(
                 in_channels=32,
                 out_channels=64,
-                kernel_size=5,
+                kernel_size=3,
                 stride=1,
-                padding=2
+                padding=1
             ),
             nn.Sigmoid(),
+            nn.BatchNorm2d(64),
             nn.MaxPool2d(
                 kernel_size=2,
                 stride=2
@@ -52,18 +54,33 @@ class Model1(nn.Module):
             nn.Conv2d(
                 in_channels=64,
                 out_channels=128,
-                kernel_size=5,
+                kernel_size=3,
                 stride=1,
-                padding=2
+                padding=1
             ),
             nn.Sigmoid(),
+            nn.BatchNorm2d(128),
+            nn.MaxPool2d(
+                kernel_size=2,
+                stride=2
+            ),
+            
+            nn.Conv2d(
+                in_channels=128,
+                out_channels=256,
+                kernel_size=3,
+                stride=1,
+                padding=1
+            ),
+            nn.Sigmoid(),
+            nn.BatchNorm2d(256),
             nn.MaxPool2d(
                 kernel_size=2,
                 stride=2
             )
         )
 
-        self.num_output_features = 128*4*4
+        self.num_output_features = 256*2*2
 
         self.classifier = nn.Sequential(
             nn.Linear(self.num_output_features, 64),
@@ -105,26 +122,22 @@ class Model2(nn.Module):
         self.num_classes = num_classes
 
         self.feature_extractor = nn.Sequential(
+            
             nn.Conv2d(
                 in_channels=image_channels,
-                out_channels=32,
-                kernel_size=3,
-                stride=1,
-                padding=1
-            ),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.MaxPool2d(
-                kernel_size=2,
-                stride=2
-            ),
-
-            nn.Conv2d(
-                in_channels=32,
                 out_channels=64,
-                kernel_size=3,
+                kernel_size=7,
                 stride=1,
-                padding=1
+                padding=3
+            ),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(
+                in_channels=64,
+                out_channels=64,
+                kernel_size=7,
+                stride=1,
+                padding=3
             ),
             nn.BatchNorm2d(64),
             nn.ReLU(),
@@ -135,12 +148,44 @@ class Model2(nn.Module):
 
             nn.Conv2d(
                 in_channels=64,
-                out_channels=128,
-                kernel_size=3,
+                out_channels=64,
+                kernel_size=7,
                 stride=1,
-                padding=1
+                padding=3
             ),
-            nn.BatchNorm2d(128),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(
+                in_channels=64,
+                out_channels=64,
+                kernel_size=7,
+                stride=1,
+                padding=3
+            ),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(
+                kernel_size=2,
+                stride=2
+            ),
+
+            nn.Conv2d(
+                in_channels=64,
+                out_channels=64,
+                kernel_size=7,
+                stride=1,
+                padding=3
+            ),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(
+                in_channels=64,
+                out_channels=64,
+                kernel_size=7,
+                stride=1,
+                padding=3
+            ),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(
                 kernel_size=2,
@@ -148,7 +193,7 @@ class Model2(nn.Module):
             )
         )
 
-        self.num_output_features = 128*4*4
+        self.num_output_features = 64*4*4
 
         self.classifier = nn.Sequential(
             nn.Linear(self.num_output_features, 64),
@@ -247,10 +292,9 @@ if __name__ == "__main__":
 
     models = [1, 2] # MODEL 1 and 2
 
-    for m in models:
+    for m in models[1:]:
 
         model, batch_size, learning_rate = initialize_model(m)
-
         
         epochs = 10
         early_stop_count = 4
@@ -265,6 +309,8 @@ if __name__ == "__main__":
             dataloaders
         )
 
+        trainer.optimizer = torch.optim.Adam(trainer.model.parameters(), trainer.learning_rate)
+        
         trainer.train()
 
         get_accuracy_loss_result(trainer, "Result for model " + str(model) + "")
