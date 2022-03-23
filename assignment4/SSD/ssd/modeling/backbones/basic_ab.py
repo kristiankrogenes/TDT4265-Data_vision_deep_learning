@@ -3,7 +3,7 @@ from torch import nn
 from typing import Tuple, List
 
 
-class BasicModel(torch.nn.Module):
+class BasicModelAB(torch.nn.Module):
     """
     This is a basic backbone for SSD.
     The feature extractor outputs a list of 6 feature maps, with the sizes:
@@ -34,7 +34,6 @@ class BasicModel(torch.nn.Module):
                 stride=1,
                 padding=1
             ),
-            nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(
                 kernel_size=2,
@@ -47,7 +46,6 @@ class BasicModel(torch.nn.Module):
                 stride=1,
                 padding=1
             ),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(
                 kernel_size=2,
@@ -60,7 +58,6 @@ class BasicModel(torch.nn.Module):
                 stride=1,
                 padding=1
             ),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(
                 in_channels=64,
@@ -81,7 +78,6 @@ class BasicModel(torch.nn.Module):
                 stride=1,
                 padding=1
             ),
-            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.Conv2d(
                 in_channels=128,
@@ -102,7 +98,6 @@ class BasicModel(torch.nn.Module):
                 stride=1,
                 padding=1
             ),
-            nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.Conv2d(
                 in_channels=256,
@@ -123,7 +118,6 @@ class BasicModel(torch.nn.Module):
                 stride=1,
                 padding=1
             ),
-            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.Conv2d(
                 in_channels=128,
@@ -144,7 +138,6 @@ class BasicModel(torch.nn.Module):
                 stride=1,
                 padding=1
             ),
-            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.Conv2d(
                 in_channels=128,
@@ -165,7 +158,6 @@ class BasicModel(torch.nn.Module):
                 stride=1,
                 padding=1
             ),
-            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.Conv2d(
                 in_channels=128,
@@ -208,4 +200,3 @@ class BasicModel(torch.nn.Module):
         assert len(out_features) == len(self.output_feature_shape),\
             f"Expected that the length of the outputted features to be: {len(self.output_feature_shape)}, but it was: {len(out_features)}"
         return tuple(out_features)
-
