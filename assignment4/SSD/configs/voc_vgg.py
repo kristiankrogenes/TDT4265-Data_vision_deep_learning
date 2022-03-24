@@ -14,7 +14,7 @@ from .utils import get_dataset_dir
 model.feature_extractor = L(backbones.VGG)()
 model.num_classes = 20 + 1
 
-optimizer.lr= 5e-3
+optimizer.lr= 5e-4
 schedulers.multistep.milestones = [70000, 9000]
 train.epochs = 40
 
